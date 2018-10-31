@@ -13,35 +13,35 @@ class MainTVC: UITableViewController {
 //    var itemsArray = ["David Bratton", "Anna Bratton", "Nicholas Bratton", "Alexandra Bratton", "Lucy Bratton", "Marley Bratton", "Bailey Bratton"]
     //var itemsArray:[String] = []
     var itemsArray = [ToDo]()
-    let defaults = UserDefaults.standard
+   //let defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("ToDos.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        let itemObject = UserDefaults.standard.object(forKey: "ToDoListArray")
-//        if let tempItems = itemObject as? [ToDo] {
-//            itemsArray = tempItems
-//        }
-        let newToDo1 = ToDo()
-        newToDo1.title = "David Bratton"
-        itemsArray.append(newToDo1)
         
-        let newToDo2 = ToDo()
-        newToDo2.title = "Anna Bratton"
-        itemsArray.append(newToDo2)
+        //print(dataFilePath)
         
-        let newToDo3 = ToDo()
-        newToDo3.title = "Nicholas Bratton"
-        itemsArray.append(newToDo3)
+//        let newToDo1 = ToDo()
+//        newToDo1.title = "David Bratton"
+//        itemsArray.append(newToDo1)
+//
+//        let newToDo2 = ToDo()
+//        newToDo2.title = "Anna Bratton"
+//        itemsArray.append(newToDo2)
+//
+//        let newToDo3 = ToDo()
+//        newToDo3.title = "Nicholas Bratton"
+//        itemsArray.append(newToDo3)
+//
+//        let newToDo4 = ToDo()
+//        newToDo4.title = "Alexandra Bratton"
+//        itemsArray.append(newToDo4)
+//
+//        let newToDo5 = ToDo()
+//        newToDo5.title = "Robert Bratton"
+//        itemsArray.append(newToDo5)
         
-        let newToDo4 = ToDo()
-        newToDo4.title = "Alexandra Bratton"
-        itemsArray.append(newToDo4)
-        
-        let newToDo5 = ToDo()
-        newToDo5.title = "Robert Bratton"
-        itemsArray.append(newToDo5)
-        
-        
+        loadItems()
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -77,8 +77,8 @@ class MainTVC: UITableViewController {
         } else {
             itemsArray[indexPath.row].done = false
         }
-        // FORCES CHECKMARKS TO UPDATE
-        tableView.reloadData()
+        saveItems()
+
         // MAKE ROW GO BACK TO WHITE AFTER CLICKED INSTEAD OF STAYING GREY
         tableView.deselectRow(at: indexPath, animated: true
             
@@ -96,8 +96,7 @@ class MainTVC: UITableViewController {
             if let newItem = textField.text {
                 newToDo.title = newItem
                 self.itemsArray.append(newToDo)
-                self.defaults.set(self.itemsArray, forKey: "ToDoListArray")
-                self.tableView.reloadData()
+                self.saveItems()
             }
         }
         // ADD TEXT BOX
@@ -107,6 +106,35 @@ class MainTVC: UITableViewController {
         }
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+    }
+    
+    func saveItems() {
+        let encoder = PropertyListEncoder()
+        do {
+            //let data = try encoder.encode(self.itemsArray)
+            // HAVE TO GO TO ToDo Model and change class to ToDo:Encodable
+            let data = try encoder.encode(itemsArray)
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("Error Saving")
+        }
+        self.tableView.reloadData()
+    }
+    
+    func loadItems() {
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+                //HAVE TO GO BACK TO ToDo.swift and ADD Decodable or
+                //replace class ToDo: Codable
+                itemsArray = try decoder.decode([ToDo].self, from: data)
+                
+            } catch {
+                print("Error Retrieving \(error)")
+            }
+            
+            
+        }
     }
     
 }
